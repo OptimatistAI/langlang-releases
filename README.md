@@ -58,25 +58,30 @@ Configuration is read from the environment; see
 
 ### systemd installation
 
+Clone the repository and run the installer with the real webroot paths:
+
 ```bash
 sudo git clone https://github.com/OptimatistAI/langlang-releases.git /opt/langlang-releases
-sudo useradd --system --home /var/lib/langlang-feed --shell /usr/sbin/nologin langlang-feed
-sudo install -d -o langlang-feed -g www-data -m 2755 \
-  /var/lib/langlang-feed \
-  /srv/optimatist.ai/langlang/macos \
-  /srv/optimatist.ai/langlang/windows
-sudo install -m 0640 /opt/langlang-releases/deploy/langlang-feed.env.example /etc/langlang-feed.env
-# Edit /etc/langlang-feed.env for the real webroot and keys path.
-sudo install -m 0644 /opt/langlang-releases/deploy/systemd/langlang-feed-puller.* /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now langlang-feed-puller.timer
+sudo /opt/langlang-releases/deploy/install-feed-puller.sh \
+  --macos-dir /srv/optimatist.ai/langlang/macos \
+  --windows-dir /srv/optimatist.ai/langlang/windows
+
+# Dry run first, then the real pull.
+sudo -u langlang-feed /opt/langlang-releases/scripts/feed-puller.sh --dry-run --platform all
 sudo systemctl start langlang-feed-puller.service
 journalctl -u langlang-feed-puller.service -f
 ```
 
+The installer is idempotent: it creates the `langlang-feed` user, prepares the
+feed directories (owner `langlang-feed`, group `www-data`, mode `2755`), writes
+`/etc/langlang-feed.env` only when absent, installs the systemd units, and
+enables the timer. If nginx runs under a different user or group, set
+`LANGLANG_NGINX_USER` / `LANGLANG_NGINX_GROUP` before running it.
+
 The service user needs write access to the two feed directories and read access
-to `config/public-keys.env`. Updates to the puller itself are deliberate: pull
-the repository and re-run the service; it is not self-updating.
+to `config/public-keys.env`. Files written by the puller are mode 0644 with
+group `www-data`, so nginx can serve them. Updates to the puller itself are
+deliberate: pull the repository and re-run the service; it is not self-updating.
 
 ## Rollback
 
