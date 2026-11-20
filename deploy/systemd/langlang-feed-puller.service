@@ -1,0 +1,11 @@
+[Unit]
+Description=LangLang desktop release feed puller
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=langlang-feed
+Group=www-data
+EnvironmentFile=/etc/langlang-feed.env
+ExecStart=/opt/langlang-releases/scripts/feed-puller.sh --platform all
