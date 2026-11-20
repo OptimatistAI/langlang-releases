@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/logo.png" width="128" alt="LangLang">
+</p>
+
 # LangLang releases
 
 Public release artifacts and publishing tooling for LangLang desktop builds.
