@@ -87,6 +87,11 @@ done
 
 if [[ -f /etc/langlang-feed.env ]]; then
   echo "==> Keep existing /etc/langlang-feed.env"
+  keys_path="$(sed -n 's/^LANGLANG_PUBLIC_KEYS_FILE=//p' /etc/langlang-feed.env | tail -1)"
+  if [[ -n "$keys_path" && ! -f "$keys_path" ]]; then
+    echo "warning: /etc/langlang-feed.env points to missing keys file: $keys_path"
+    echo "         set LANGLANG_PUBLIC_KEYS_FILE=$REPO_DIR/config/public-keys.env"
+  fi
 else
   echo "==> Write /etc/langlang-feed.env"
   cat >/etc/langlang-feed.env <<EOF
@@ -109,13 +114,15 @@ systemctl daemon-reload
 systemctl enable --now langlang-feed-puller.timer
 
 echo "==> Check nginx readability"
-if id -u "$NGINX_USER" >/dev/null 2>&1 &&
-  runuser -u "$NGINX_USER" -- test -r "$MACOS_DIR" 2>/dev/null &&
-  runuser -u "$NGINX_USER" -- test -x "$MACOS_DIR" 2>/dev/null; then
-  echo "ok: $NGINX_USER can traverse and read $MACOS_DIR"
-else
-  echo "warning: cannot confirm $NGINX_USER traversal of $MACOS_DIR; check parent directory permissions"
-fi
+for dir in "$MACOS_DIR" "$WINDOWS_DIR"; do
+  if id -u "$NGINX_USER" >/dev/null 2>&1 &&
+    runuser -u "$NGINX_USER" -- test -r "$dir" 2>/dev/null &&
+    runuser -u "$NGINX_USER" -- test -x "$dir" 2>/dev/null; then
+    echo "ok: $NGINX_USER can traverse and read $dir"
+  else
+    echo "warning: cannot confirm $NGINX_USER traversal of $dir; check parent directory permissions"
+  fi
+done
 
 cat <<EOF
 
