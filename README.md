@@ -5,6 +5,10 @@ Public release artifacts and publishing tooling for LangLang desktop builds.
 This repository hosts **installers and update feeds**, not application source.
 The app source lives in the private `OptimatistAI/langlang` repository.
 
+GitHub attaches auto-generated source archives (`Source code (zip/tar.gz)`) to
+every release. Here they contain only this repository's tooling — release
+scripts, public keys, and systemd units — never the application source.
+
 ## Release layout
 
 | Platform | Tag | Assets |
